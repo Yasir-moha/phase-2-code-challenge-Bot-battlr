@@ -1,23 +1,46 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import BotCollection from "./components/BotCollection";
+import YourBotArmy from "./components/YourBotArmy";
+import "./App.css";
 
 function App() {
+  const [bots, setBots] = useState([]);
+  const [army, setArmy] = useState([]);
+
+  useEffect(() => {
+    fetch("https://bot-battlr-backend-rho.vercel.app/bots")
+      .then((response) => response.json())
+      .then((data) => setBots(data));
+  }, []);
+
+  const enlistBot = (bot) => {
+    if (!army.some((b) => b.id === bot.id)) {
+      setArmy([...army, bot]);
+    }
+  };
+
+  const releaseBot = (bot) => {
+    setArmy(army.filter((b) => b.id !== bot.id));
+  };
+
+  const dischargeBot = (bot) => {
+    fetch(`https://bot-battlr-backend-rho.vercel.app/bots/${bot.id}`, {
+      method: "DELETE",
+    }).then(() => {
+      setArmy(army.filter((b) => b.id !== bot.id));
+      setBots(bots.filter((b) => b.id !== bot.id));
+    });
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      <h1>Bot Battlr</h1>
+      <YourBotArmy
+        bots={army}
+        releaseBot={releaseBot}
+        dischargeBot={dischargeBot}
+      />
+      <BotCollection bots={bots} enlistBot={enlistBot} />
     </div>
   );
 }
